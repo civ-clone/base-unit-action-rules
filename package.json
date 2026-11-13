@@ -1,7 +1,7 @@
 {
   "name": "@civ-clone/base-unit-action-rules",
   "version": "0.1.4",
-  "description": "Building blocks for a ruleset's unit action rules: route planning for go-to and the actions that build along a route, and the criteria for moving, attacking, landing, pillaging, breaking a treaty, diplomatic missions, trade routes, terrain work, boarding and leaving transports, and a unit's standing orders.",
+  "description": "Building blocks for a ruleset's unit action rules: an assembler that builds them from a table, in order, and places a package's own actions among them; route planning for go-to and the actions that build along a route, and the criteria for moving, attacking, landing, pillaging, breaking a treaty, diplomatic missions, trade routes, terrain work, boarding and leaving transports, and a unit's standing orders.",
   "repository": "git@github.com:civ-clone/base-unit-action-rules.git",
   "keywords": [
     "typescript",
@@ -18,6 +18,8 @@
     "ts:compile": "tsc --build tsconfig.json"
   },
   "devDependencies": {
+    "@civ-clone/base-unit-trait-ignores-zone-of-control": "^0.1.0",
+    "@civ-clone/base-zone-of-control": "^0.1.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^10.0.0",
     "@types/node": "^16.0.0",
