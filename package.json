@@ -1,7 +1,7 @@
 {
   "name": "@civ-clone/base-unit-action-rules",
   "version": "0.1.2",
-  "description": "Building blocks for a ruleset's unit action rules: route planning for go-to and the actions that build along a route, and the criteria for moving, attacking, landing, pillaging and breaking a treaty.",
+  "description": "Building blocks for a ruleset's unit action rules: route planning for go-to and the actions that build along a route, and the criteria for moving, attacking, landing, pillaging, breaking a treaty, diplomatic missions and trade routes.",
   "repository": "git@github.com:civ-clone/base-unit-action-rules.git",
   "keywords": [
     "typescript",
@@ -28,12 +28,15 @@
     "typescript": "^4.0.0"
   },
   "dependencies": {
+    "@civ-clone/base-unit-action-establish-embassy": "^0.1.0",
     "@civ-clone/base-unit-trait-detonates": "^0.1.0",
+    "@civ-clone/base-unit-trait-diplomatic-missions": "^0.1.0",
     "@civ-clone/base-unit-trait-fortifies": "^0.1.0",
     "@civ-clone/base-unit-trait-interceptor": "^0.1.0",
     "@civ-clone/base-unit-trait-non-combatant": "^0.1.0",
     "@civ-clone/base-unit-trait-submerged": "^0.1.0",
     "@civ-clone/base-unit-trait-terraforms": "^0.1.0",
+    "@civ-clone/base-unit-trait-trade-missions": "^0.1.0",
     "@civ-clone/core-city": "^0.1.19",
     "@civ-clone/core-diplomacy": "^0.1.7",
     "@civ-clone/core-engine": "^0.1.0",
