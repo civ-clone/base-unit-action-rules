@@ -236,6 +236,35 @@ describe('peace', (): void => {
     expect(expired(me, nobody)).true;
   });
 
+  it('should ask `peaceExpired` for an ordinary attack or capture, and `atPeace` for a sneak one', (): void => {
+    const deps = setUp(),
+      { city, peace, unit } = deps,
+      me = player('me'),
+      neither = player('neither'),
+      both = player('both'),
+      here = tile('here'),
+      to = tile('to'),
+      there = tile('there'),
+      mover = unit(Land, me, here),
+      criteria = peaceCriteria(deps);
+
+    peace(me, neither, false, false);
+    peace(me, both, true, true);
+    unit(Land, neither, to);
+    city(neither, to);
+    unit(Land, both, there);
+    city(both, there);
+
+    expect(criteria.allPeaceExpired.validate(mover, to)).false;
+    expect(criteria.ownerPeaceExpired.validate(mover, to)).false;
+    expect(criteria.allAtPeace.validate(mover, to)).false;
+    expect(criteria.peaceWithOwner.validate(mover, to)).false;
+    expect(criteria.allPeaceExpired.validate(mover, there)).true;
+    expect(criteria.ownerPeaceExpired.validate(mover, there)).true;
+    expect(criteria.allAtPeace.validate(mover, there)).true;
+    expect(criteria.peaceWithOwner.validate(mover, there)).true;
+  });
+
   it('should need every peace to have expired, and any one to be active', (): void => {
     const { interactionRegistry, peace } = setUp(),
       me = player('me'),
@@ -618,6 +647,8 @@ describe('domainMoveCriteria', (): void => {
 
     expect(all(criteria, soldier, to)).true;
     expect(all(criteria, soldier, sea)).false;
+    // Not ashore from a ship: that's a ruleset's own action.
+    expect(all(criteria, soldier, to, sea)).false;
     expect(all(criteria, ship, port)).true;
     expect(all(criteria, ship, to)).false;
     expect(all(criteria, ship, sea, port)).true;
