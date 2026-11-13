@@ -632,6 +632,42 @@ describe('placeActions', (): void => {
     ]);
   });
 
+  it('refuses two actions with the same id, moving nothing', (): void => {
+    const { ruleRegistry, told } = setUp();
+
+    expect(() =>
+      placeActions(
+        ruleRegistry,
+        { after: 'set:unit/action/first' },
+        plugin('a'),
+        plugin('a')
+      )
+    ).to.throw(DuplicateRuleIdError);
+    expect(actionIds(ruleRegistry)).to.deep.equal([
+      'set:unit/action/first',
+      'set:unit/action/second',
+      'set:unit/action/third',
+    ]);
+    expect(told).to.deep.equal([]);
+  });
+
+  it('moves nothing, and tells no listener, when given no actions', (): void => {
+    const { ruleRegistry, told } = setUp();
+
+    placeActions(ruleRegistry, { before: 'set:unit/action/first' });
+
+    expect(actionIds(ruleRegistry)).to.deep.equal([
+      'set:unit/action/first',
+      'set:unit/action/second',
+      'set:unit/action/third',
+    ]);
+    expect(told).to.deep.equal([]);
+    // The anchor is still checked.
+    expect(() =>
+      placeActions(ruleRegistry, { before: 'set:unit/action/fourth' })
+    ).to.throw(UnknownAnchorError, /name order/);
+  });
+
   it("refuses an action whose priority isn't its anchor's", (): void => {
     const { ruleRegistry } = setUp();
 

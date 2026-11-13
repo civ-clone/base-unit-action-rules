@@ -36,17 +36,35 @@ export const placeActions = (
 
   if (!(target instanceof Action)) {
     throw new UnknownAnchorError(
-      `No action rule is registered as '${id}'. Either it is misspelled, or the package that declares it is not loaded.`
+      `No action rule is registered as '${id}'. Either it is misspelled, or the package that declares it is not ` +
+        'loaded yet: plugins load in name order, so the package placing an action must load after the one ' +
+        'declaring its anchor.'
     );
   }
 
+  // Nothing to place: nothing moves, and no listener is told of anything.
+  if (rules.length === 0) {
+    return;
+  }
+
+  const ids = new Set<string>();
+
   rules.forEach((rule: Action): void => {
+    const ruleId = rule.id();
+
     // Checked here, before anything moves, rather than left to `register`, which would throw with the rules after the
-    //  place already taken out.
-    if (rule.id() !== null && ruleRegistry.getById(rule.id()!) !== null) {
+    //  place already taken out: one already registered, or two of `rules` with the same id.
+    if (
+      ruleId !== null &&
+      (ruleRegistry.getById(ruleId) !== null || ids.has(ruleId))
+    ) {
       throw new DuplicateRuleIdError(
-        `'${rule.id()}' is registered already, so it can't be placed.`
+        `'${ruleId}' is registered already, or given twice, so it can't be placed.`
       );
+    }
+
+    if (ruleId !== null) {
+      ids.add(ruleId);
     }
 
     if (rule.priority().value() !== target.priority().value()) {
