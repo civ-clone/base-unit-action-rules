@@ -16,11 +16,12 @@ numbers, and builds their criteria and effects from these:
   still makes it (`remaining >= cost × factor × rng()`, one draw), and `expectedCost(movement, cost, factor)` is what such
   a step is worth on average to a path finder (`max(movement, cost × factor)`).
 
-- `lib/criteria/*`: criteria for a ruleset's movement, combat, diplomatic and trade actions, each factory called once
-  per set of rules with the registries it needs. Each returns the same leaf criteria, in the same order, as the rules
-  they were lifted from (civ1-unit), so an action's criteria are checked exactly as before. Predicates the ruleset
-  passes in become their own criteria as they are, with no defaults added, except the diplomatic and trade ones
-  (`canStealFrom`, `isCapital`, `qualifies`), which are asked inside the one criterion they replace a part of.
+- `lib/criteria/*`: criteria for a ruleset's movement, combat, diplomatic, trade, terrain, transport and order actions,
+  each factory called once per set of rules with the registries it needs. Each returns the same leaf criteria, in the
+  same order, as the rules they were lifted from (civ1-unit), so an action's criteria are checked exactly as before.
+  Predicates and criteria the ruleset passes in become their own criteria as they are, with no defaults added, except
+  the diplomatic and trade ones (`canStealFrom`, `isCapital`, `qualifies`), which are asked inside the one criterion
+  they replace a part of.
   - `domain`: `isLandUnit`, `isNavalUnit` (shared criteria) and `tileHasCity(tile, cityRegistry)`.
   - `peace`: `atPeace` (a `Peace` is `active()`) and `peaceExpired` (every `Peace` has `expired()`), kept apart, and
     `peaceCriteria(deps)` with `allPeaceExpired`, `allAtPeace`, `ownerPeaceExpired` and `peaceWithOwner`.
@@ -44,5 +45,17 @@ numbers, and builds their criteria and effects from these:
   - `tradeRoute`: `tradeRoute(deps, { qualifies })` gives `canEstablishTradeRoute` and `tradeRouteCriteria`, for a unit
     with `TradeMissions` and a home city: any foreign city (not from the sea), or another of its own player's cities
     when the ruleset's `qualifies(home, city)` holds.
+  - `worker`: `terrainJob(deps, Improvement, ...extra)`, for building `Improvement` on the unit's own tile where an
+    `Available` rule allows it, with the ruleset's own `extra` criteria last (such as what counts as water nearby);
+    `requiresImprovement(deps, Improvement)`, for an `extra` that needs one improvement on `to` before another;
+    `terrainConversion(TerrainTypes, ...extra)`, for changing the terrain of a tile that is one of `TerrainTypes` (the
+    ruleset's conversion table); and `cleanPollution(deps, Pollution)`. Each is for a unit that `Terraforms`.
+  - `transport`: `transport(deps)` gives `embarkCriteria` (a land unit boarding its player's `NavalTransport` with room
+    on neighbouring water that holds no foreign unit), `disembarkCriteria` (leaving a transport, asking
+    `transportRegistry.hasUnit` first, as it is nearly always false) and `unloadCriteria`.
+  - `orders`: `orders(deps)` gives the criteria for the orders a unit is given on its own tile: `fortifyCriteria`,
+    `sleepCriteria`, `activateCriteria`, `disbandCriteria`, `noOrdersCriteria`, `foundCityCriteria`, `joinCityCriteria`
+    (with base-unit-action-join-city's `joinableCity`), `setHomeCityCriteria`, `exploreCriteria` and
+    `automateCriteria`, each its own list so a ruleset can add to one.
 
 A library: it has no `main` and registers no rules. See `civ1-unit` for Civilization's unit actions.
