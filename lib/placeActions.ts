@@ -1,6 +1,8 @@
 import { Action } from '@civ-clone/core-unit/Rules/Action';
 import Rule from '@civ-clone/core-rule/Rule';
-import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
+import RuleRegistry, {
+  DuplicateRuleIdError,
+} from '@civ-clone/core-rule/RuleRegistry';
 
 // Where an action goes among a ruleset's actions: straight after, or straight before, the action rule with this id.
 export type Anchor = { after: string } | { before: string };
@@ -39,6 +41,14 @@ export const placeActions = (
   }
 
   rules.forEach((rule: Action): void => {
+    // Checked here, before anything moves, rather than left to `register`, which would throw with the rules after the
+    //  place already taken out.
+    if (rule.id() !== null && ruleRegistry.getById(rule.id()!) !== null) {
+      throw new DuplicateRuleIdError(
+        `'${rule.id()}' is registered already, so it can't be placed.`
+      );
+    }
+
     if (rule.priority().value() !== target.priority().value()) {
       throw new AnchorPriorityError(
         `'${rule.id()}' can't be placed by '${id}': their priorities differ.`

@@ -13,7 +13,9 @@ import { Land } from '@civ-clone/library-unit/Types';
 import { Overruled } from '@civ-clone/library-unit/Actions';
 import Player from '@civ-clone/core-player/Player';
 import Rule from '@civ-clone/core-rule/Rule';
-import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
+import RuleRegistry, {
+  DuplicateRuleIdError,
+} from '@civ-clone/core-rule/RuleRegistry';
 import Terraforms from '@civ-clone/base-unit-trait-terraforms/Terraforms';
 import Terrain from '@civ-clone/core-terrain/Terrain';
 import Tile from '@civ-clone/core-world/Tile';
@@ -608,6 +610,26 @@ describe('placeActions', (): void => {
       placeActions(ruleRegistry, { before: 'set:note' }, plugin('a'))
     ).to.throw(UnknownAnchorError);
     expect(ruleRegistry.getById('plugin:unit/action/a')).to.equal(null);
+  });
+
+  it('refuses an action whose id is registered already, moving nothing', (): void => {
+    const { ruleRegistry } = setUp();
+
+    expect(() =>
+      placeActions(
+        ruleRegistry,
+        { before: 'set:unit/action/second' },
+        new Action(
+          'set:unit/action/third',
+          new Effect((): UnitAction => marker('again'))
+        )
+      )
+    ).to.throw(DuplicateRuleIdError);
+    expect(actionIds(ruleRegistry)).to.deep.equal([
+      'set:unit/action/first',
+      'set:unit/action/second',
+      'set:unit/action/third',
+    ]);
   });
 
   it("refuses an action whose priority isn't its anchor's", (): void => {
