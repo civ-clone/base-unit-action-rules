@@ -12,5 +12,8 @@ numbers, and builds their criteria and effects from these:
 - `lib/PlannedPathFinderRegistry`: the path finders of a `PathFinderRegistry`, except that the first search for the
   planned journey returns the planned route.
 - `lib/Dependencies`: the registries the builders take, by name.
+- `lib/moveShortfall`: `succeedsShort(remaining, cost, factor, rng)` is whether a unit short of the moves a step costs
+  still makes it (`remaining >= cost × factor × rng()`, one draw), and `expectedCost(movement, cost, factor)` is what such
+  a step is worth on average to a path finder (`max(movement, cost × factor)`).
 
 A library: it has no `main` and registers no rules. See `civ1-unit` for Civilization's unit actions.
