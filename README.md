@@ -3,6 +3,26 @@
 Building blocks for a ruleset's unit action rules. The ruleset keeps its own `Action` rules, with its own ids, order and
 numbers, and builds their criteria and effects from these:
 
+- `lib/actionRules`: `actionRules(prefix, table, { ruleRegistry, hasSenate })` builds a ruleset's action rules from a
+  table, in the table's order, which is the order a unit is offered its actions in. Each row is one of:
+  - `{ name, criteria, effect }`: the rule `<prefix>:unit/action/<name>`, with the row's criteria as they are, in order,
+    and its effect (a function building the unit action, given to the rule as it is, or an `Effect`).
+  - the same with `breaksTreaty: { blocked, cost? }`, for an action that breaks a treaty. With `hasSenate`, it is
+    offered only to a player without a Senate (a criterion after the row's own), and straight after it comes
+    `<prefix>:unit/action/overruled/<name>`, on the same criteria, for a player with one: it performs an `Overruled`
+    wrapping `blocked`, costing `cost` moves (0 if not given). Without `hasSenate`, there is no such rule and no gate.
+  - `{ improvement, extra?, effect }`: `<prefix>:unit/action/improvement/<improvement's class name>`, on `terrainJob`'s
+    criteria and then `extra`.
+  - `{ conversion, terrains, extra?, effect }`: `<prefix>:unit/action/terrain/<conversion's class name>`, on
+    `terrainConversion(terrains, ...extra)`.
+  A row left out is an action the ruleset doesn't have; rows in another order are offered in that order.
+- `lib/placeActions`: `placeActions(ruleRegistry, { after: id } | { before: id }, ...rules)` registers a package's own
+  action rules at a place among those already registered: straight before the anchor, or straight after it (and after
+  anything placed after it earlier). The place is settled once, when it is called, by registering the actions after it
+  again behind the new ones, so nothing is worked out when a unit is asked for its actions. The anchor must be a
+  registered `Action` (otherwise `UnknownAnchorError`), with the same priority (otherwise `AnchorPriorityError`): rules
+  run by priority first. Without it, a package's actions come after those of the packages loaded before it.
+
 - `lib/RoutePlanner`: `new RoutePlanner({ engine, pathFinderRegistry, ruleRegistry, strategyNoteRegistry })`, one per
   set of rules. `goTo()` is a criterion that finds a route and keeps it, and `goToEffect(GoTo)` builds a `GoTo` that
   follows that route rather than searching for it again. `route()` and `routeEffect(RoadTo)` do the same for actions
