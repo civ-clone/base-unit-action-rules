@@ -5,6 +5,8 @@ import PathFinderRegistry from '@civ-clone/core-world-path/PathFinderRegistry';
 import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
 import StrategyNoteRegistry from '@civ-clone/core-strategy/StrategyNoteRegistry';
 import TileImprovementRegistry from '@civ-clone/core-tile-improvement/TileImprovementRegistry';
+import TransportRegistry from '@civ-clone/core-unit-transport/TransportRegistry';
+import UnitImprovementRegistry from '@civ-clone/core-unit-improvement/UnitImprovementRegistry';
 import UnitRegistry from '@civ-clone/core-unit/UnitRegistry';
 
 /**
@@ -21,6 +23,8 @@ export interface Dependencies {
   ruleRegistry: RuleRegistry;
   strategyNoteRegistry: StrategyNoteRegistry;
   tileImprovementRegistry: TileImprovementRegistry;
+  transportRegistry: TransportRegistry;
+  unitImprovementRegistry: UnitImprovementRegistry;
   unitRegistry: UnitRegistry;
 }
 
