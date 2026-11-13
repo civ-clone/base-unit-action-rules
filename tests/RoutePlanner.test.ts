@@ -26,12 +26,12 @@ describe('RoutePlanner', (): void => {
     }
   }
 
-  // The criteria and effects only compare and pass these on.
-  const unit = {} as Unit,
-    otherUnit = {} as Unit,
-    from = {} as Tile,
-    to = {} as Tile,
-    elsewhere = {} as Tile;
+  // The criteria and effects only compare and pass these on; named, so a deep comparison tells them apart.
+  const unit = { name: 'unit' } as unknown as Unit,
+    otherUnit = { name: 'otherUnit' } as unknown as Unit,
+    from = { name: 'from' } as unknown as Tile,
+    to = { name: 'to' } as unknown as Tile,
+    elsewhere = { name: 'elsewhere' } as unknown as Tile;
 
   // Stand-ins for the actions a ruleset builds, recording what they're given.
   class Journey {
