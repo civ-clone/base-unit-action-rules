@@ -297,6 +297,11 @@ describe('terrainJob', (): void => {
 
     expect(criterion.validate(worker, here)).false;
 
+    // Only the given improvement counts.
+    improve(here, make(Ditch), make(Rail));
+
+    expect(criterion.validate(worker, here)).false;
+
     improve(here, make(Ditch), make(Track));
 
     expect(criterion.validate(worker, here)).true;
@@ -361,6 +366,21 @@ describe('terrainConversion', (): void => {
         open
       )
     ).true;
+    // `from`, not `to`, even when they differ.
+    expect(
+      criteria[3].validate(
+        unit(Unit, me, wooded, { traits: [Terraforms] }),
+        wooded,
+        open
+      )
+    ).true;
+    expect(
+      criteria[3].validate(
+        unit(Unit, me, open, { traits: [Terraforms] }),
+        open,
+        wooded
+      )
+    ).false;
   });
 
   it('should add the extras last', (): void => {
