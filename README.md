@@ -16,10 +16,11 @@ numbers, and builds their criteria and effects from these:
   still makes it (`remaining >= cost × factor × rng()`, one draw), and `expectedCost(movement, cost, factor)` is what such
   a step is worth on average to a path finder (`max(movement, cost × factor)`).
 
-- `lib/criteria/*`: criteria for a ruleset's movement and combat actions, each factory called once per set of rules
-  with the registries it needs. Each returns the same leaf criteria, in the same order, as the rules they were lifted
-  from (civ1-unit), so an action's criteria are checked exactly as before. Predicates the ruleset passes in become their
-  own criteria as they are, with no defaults added.
+- `lib/criteria/*`: criteria for a ruleset's movement, combat, diplomatic and trade actions, each factory called once
+  per set of rules with the registries it needs. Each returns the same leaf criteria, in the same order, as the rules
+  they were lifted from (civ1-unit), so an action's criteria are checked exactly as before. Predicates the ruleset
+  passes in become their own criteria as they are, with no defaults added, except the diplomatic and trade ones
+  (`canStealFrom`, `isCapital`, `qualifies`), which are asked inside the one criterion they replace a part of.
   - `domain`: `isLandUnit`, `isNavalUnit` (shared criteria) and `tileHasCity(tile, cityRegistry)`.
   - `peace`: `atPeace` (a `Peace` is `active()`) and `peaceExpired` (every `Peace` has `expired()`), kept apart, and
     `peaceCriteria(deps)` with `allPeaceExpired`, `allAtPeace`, `ownerPeaceExpired` and `peaceWithOwner`.
@@ -35,5 +36,13 @@ numbers, and builds their criteria and effects from these:
   - `pillage`: `pillageCriteria(deps, pillageable)`, with the ruleset's list of what can be pillaged.
   - `treatyGate`: `treatyGate(hasSenate)` gives `isFree` and `isOverruled`; `overruled({ id, isOverruled, ruleRegistry })`
     builds the overruled form of a treaty-breaking action, with its id from the ruleset's `id(name)`.
+  - `diplomat`: `diplomat(deps)` gives `diplomatCity` (the foreign city on `to` a unit with `DiplomaticMissions` could
+    act on, not from the sea) and `diplomatCriteria`, which every action on that city shares. To list after them:
+    `canSteal(deps, canStealFrom)`, `hasNoEmbassy(deps)` (no `Embassy` held with the city's owner yet) and
+    `canIncite(deps, isCapital)`. `bribeUnitCriteria(deps)`: a lone foreign unit outside a city. None has a peace check,
+    so a ruleset adds its own (`peaceCriteria`, `treatyGate`).
+  - `tradeRoute`: `tradeRoute(deps, { qualifies })` gives `canEstablishTradeRoute` and `tradeRouteCriteria`, for a unit
+    with `TradeMissions` and a home city: any foreign city (not from the sea), or another of its own player's cities
+    when the ruleset's `qualifies(home, city)` holds.
 
 A library: it has no `main` and registers no rules. See `civ1-unit` for Civilization's unit actions.
