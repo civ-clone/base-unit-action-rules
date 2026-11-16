@@ -4,7 +4,8 @@ import InteractionRegistry from '@civ-clone/core-diplomacy/InteractionRegistry';
 import Player from '@civ-clone/core-player/Player';
 export type PeaceCheck = (player: Player, other: Player) => boolean;
 /**
- * Whether `player` and `other` have a `Peace` that is `active()`. What a sneak action (one that breaks the peace) asks.
+ * Whether `player` and `other` are at peace (or allied: an alliance implies peace), by base-diplomacy's `hasTreatyLevel`.
+ *  What a sneak action (one that breaks the peace) asks.
  */
 export declare const atPeace: (
   interactionRegistry: InteractionRegistry

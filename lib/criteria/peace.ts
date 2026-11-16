@@ -4,23 +4,23 @@ import Dependencies from '../Dependencies';
 import InteractionRegistry from '@civ-clone/core-diplomacy/InteractionRegistry';
 import { Peace } from '@civ-clone/library-diplomacy/Declarations';
 import Player from '@civ-clone/core-player/Player';
+import {
+  TreatyLevel,
+  hasTreatyLevel,
+} from '@civ-clone/base-diplomacy/lib/treatyLevel';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 
 export type PeaceCheck = (player: Player, other: Player) => boolean;
 
 /**
- * Whether `player` and `other` have a `Peace` that is `active()`. What a sneak action (one that breaks the peace) asks.
+ * Whether `player` and `other` are at peace (or allied: an alliance implies peace), by base-diplomacy's `hasTreatyLevel`.
+ *  What a sneak action (one that breaks the peace) asks.
  */
 export const atPeace =
   (interactionRegistry: InteractionRegistry): PeaceCheck =>
   (player: Player, other: Player): boolean =>
-    interactionRegistry
-      .getByPlayers(player, other)
-      .some(
-        (interaction): interaction is Peace =>
-          interaction instanceof Peace && interaction.active()
-      );
+    hasTreatyLevel({ interactionRegistry }, player, other, TreatyLevel.Peace);
 
 /**
  * Whether every `Peace` between `player` and `other` has `expired()`, which holds when they have none. What an ordinary

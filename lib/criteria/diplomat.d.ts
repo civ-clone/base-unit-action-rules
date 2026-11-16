@@ -22,7 +22,9 @@ export declare const canSteal: (
 export declare const hasNoEmbassy: ({
   cityRegistry,
   interactionRegistry,
-}: Pick<Dependencies, 'cityRegistry' | 'interactionRegistry'>) => Criterion;
+  ruleRegistry,
+}: Pick<Dependencies, 'cityRegistry' | 'interactionRegistry'> &
+  Partial<Pick<Dependencies, 'ruleRegistry'>>) => Criterion;
 export type IsCapital = (city: City) => boolean;
 export declare const canIncite: (
   { cityRegistry }: Pick<Dependencies, 'cityRegistry'>,

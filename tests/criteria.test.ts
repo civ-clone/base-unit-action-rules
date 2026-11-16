@@ -22,6 +22,8 @@ import Interceptor from '@civ-clone/base-unit-trait-interceptor/Interceptor';
 import NonCombatant from '@civ-clone/base-unit-trait-non-combatant/NonCombatant';
 import { Overruled } from '@civ-clone/library-unit/Actions';
 import { Peace } from '@civ-clone/library-diplomacy/Declarations';
+import Alliance from '@civ-clone/base-diplomacy-declaration-alliance/Alliance';
+import Ceasefire from '@civ-clone/base-diplomacy-declaration-ceasefire/Ceasefire';
 import Player from '@civ-clone/core-player/Player';
 import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
 import Submerged from '@civ-clone/base-unit-trait-submerged/Submerged';
@@ -234,6 +236,24 @@ describe('peace', (): void => {
     // No peace at all: not at peace, and nothing left to expire.
     expect(active(me, nobody)).false;
     expect(expired(me, nobody)).true;
+  });
+
+  it('should count allies at peace, and a ceasefire not (base-diplomacy `treatyLevel`)', (): void => {
+    const registry = new InteractionRegistry(),
+      ruleRegistry = new RuleRegistry(),
+      me = new Player(ruleRegistry),
+      ally = new Player(ruleRegistry),
+      truce = new Player(ruleRegistry),
+      active = atPeace(registry);
+
+    registry.register(
+      new Alliance(me, ally, ruleRegistry),
+      new Ceasefire(me, truce, ruleRegistry)
+    );
+
+    expect(active(me, ally)).true;
+    expect(active(ally, me)).true;
+    expect(active(me, truce)).false;
   });
 
   it('should ask `peaceExpired` for an ordinary attack or capture, and `atPeace` for a sneak one', (): void => {

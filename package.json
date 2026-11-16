@@ -18,6 +18,9 @@
     "ts:compile": "tsc --build tsconfig.json"
   },
   "devDependencies": {
+    "@civ-clone/base-diplomacy-declaration-alliance": "^0.1.0",
+    "@civ-clone/base-diplomacy-declaration-ceasefire": "^0.1.0",
+    "@civ-clone/base-unit-action-establish-embassy": "^0.1.0",
     "@civ-clone/base-unit-trait-ignores-zone-of-control": "^0.1.0",
     "@civ-clone/base-zone-of-control": "^0.1.0",
     "@types/chai": "^4.0.0",
@@ -30,8 +33,8 @@
     "typescript": "^4.0.0"
   },
   "dependencies": {
+    "@civ-clone/base-diplomacy": "^0.1.3",
     "@civ-clone/base-unit-action-embark": "^0.1.0",
-    "@civ-clone/base-unit-action-establish-embassy": "^0.1.0",
     "@civ-clone/base-unit-action-join-city": "^0.1.1",
     "@civ-clone/base-unit-trait-detonates": "^0.1.0",
     "@civ-clone/base-unit-trait-diplomatic-missions": "^0.1.0",
