@@ -22,6 +22,8 @@ import Interceptor from '@civ-clone/base-unit-trait-interceptor/Interceptor';
 import NonCombatant from '@civ-clone/base-unit-trait-non-combatant/NonCombatant';
 import { Overruled } from '@civ-clone/library-unit/Actions';
 import { Peace } from '@civ-clone/library-diplomacy/Declarations';
+import Alliance from '@civ-clone/base-diplomacy-declaration-alliance/Alliance';
+import Ceasefire from '@civ-clone/base-diplomacy-declaration-ceasefire/Ceasefire';
 import Player from '@civ-clone/core-player/Player';
 import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
 import Submerged from '@civ-clone/base-unit-trait-submerged/Submerged';
@@ -234,6 +236,37 @@ describe('peace', (): void => {
     // No peace at all: not at peace, and nothing left to expire.
     expect(active(me, nobody)).false;
     expect(expired(me, nobody)).true;
+  });
+
+  it('should count allies at peace, and a ceasefire as a treaty a sneak action breaks', (): void => {
+    const registry = new InteractionRegistry(),
+      ruleRegistry = new RuleRegistry(),
+      me = new Player(ruleRegistry),
+      ally = new Player(ruleRegistry),
+      truce = new Player(ruleRegistry),
+      active = atPeace(registry);
+
+    registry.register(
+      new Alliance(me, ally, ruleRegistry),
+      new Ceasefire(me, truce, ruleRegistry)
+    );
+
+    expect(active(me, ally)).true;
+    expect(active(ally, me)).true;
+    expect(active(me, truce)).true;
+
+    // An ordinary attack waits for the ceasefire to end, as for a peace.
+    const expired = peaceExpired(registry);
+
+    expect(expired(me, truce)).false;
+    expect(expired(me, ally)).false;
+
+    registry
+      .getByPlayers(me, truce)
+      .forEach((ceasefire) => (ceasefire as Ceasefire).expire());
+
+    expect(active(me, truce)).false;
+    expect(expired(me, truce)).true;
   });
 
   it('should ask `peaceExpired` for an ordinary attack or capture, and `atPeace` for a sneak one', (): void => {
@@ -828,6 +861,52 @@ describe('treatyGate', (): void => {
     expect(isFree.validate(ownedBy(senate))).false;
     expect(isOverruled.validate(ownedBy(senate))).true;
     expect(asked).eql([free, free, senate, senate]);
+  });
+
+  it('should pass the treaty partner on the target square, the unit and the squares, given the registries', (): void => {
+    const me = player('me'),
+      owner = player('owner'),
+      stranger = player('stranger'),
+      cityTile = {} as Tile,
+      unitTile = {} as Tile,
+      emptyTile = {} as Tile,
+      from = {} as Tile,
+      ownedBy = (owner: Player): Unit =>
+        ({ player: (): Player => owner } as unknown as Unit),
+      mine = ownedBy(me),
+      cityRegistry = {
+        getByTile: (tile: Tile) =>
+          tile === cityTile ? { player: (): Player => owner } : null,
+      } as unknown as CityRegistry,
+      unitRegistry = {
+        getByTile: (tile: Tile): Unit[] =>
+          tile === unitTile ? [ownedBy(me), ownedBy(stranger)] : [],
+      } as unknown as UnitRegistry,
+      asked: any[][] = [],
+      hasSenate = (...args: any[]): boolean => {
+        asked.push(args);
+
+        return args[1] === owner;
+      },
+      { isFree, isOverruled } = treatyGate(hasSenate, {
+        cityRegistry,
+        unitRegistry,
+      });
+
+    expect(isOverruled.validate(mine, cityTile, from)).true;
+    expect(isFree.validate(mine, unitTile, from)).true;
+    expect(isFree.validate(mine, emptyTile, from)).true;
+    expect(asked).eql([
+      [me, owner, mine, cityTile, from],
+      [me, stranger, mine, unitTile, from],
+      [me, null, mine, emptyTile, from],
+    ]);
+
+    // Without the registries, nothing is looked up and there's no partner.
+    asked.length = 0;
+    treatyGate(hasSenate).isFree.validate(mine, cityTile, from);
+
+    expect(asked).eql([[me, null, mine, cityTile, from]]);
   });
 
   it('should build an overruled action with its id, the criteria, then `isOverruled`', (): void => {

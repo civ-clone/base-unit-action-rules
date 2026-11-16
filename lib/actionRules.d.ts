@@ -2,12 +2,12 @@ import { Action } from '@civ-clone/core-unit/Rules/Action';
 import Criterion from '@civ-clone/core-rule/Criterion';
 import Dependencies from './Dependencies';
 import Effect from '@civ-clone/core-rule/Effect';
-import Player from '@civ-clone/core-player/Player';
 import Terrain from '@civ-clone/core-terrain/Terrain';
 import Tile from '@civ-clone/core-world/Tile';
 import TileImprovement from '@civ-clone/core-tile-improvement/TileImprovement';
 import Unit from '@civ-clone/core-unit/Unit';
 import UnitAction from '@civ-clone/core-unit/Action';
+import { HasSenate } from './criteria/treatyGate';
 export type Perform = (unit: Unit, to: Tile, from: Tile) => UnitAction;
 export interface BreaksTreaty {
   blocked: Perform;
@@ -40,8 +40,9 @@ export interface ConversionRow {
 }
 export type ActionRow = NamedRow | ImprovementRow | ConversionRow;
 export interface ActionRulesDependencies
-  extends Pick<Dependencies, 'ruleRegistry'> {
-  hasSenate?: (player: Player) => boolean;
+  extends Pick<Dependencies, 'ruleRegistry'>,
+    Partial<Pick<Dependencies, 'cityRegistry' | 'unitRegistry'>> {
+  hasSenate?: HasSenate;
 }
 export declare const actionId: (prefix: string, name: string) => string;
 /**
@@ -53,6 +54,11 @@ export declare const actionId: (prefix: string, name: string) => string;
 export declare const actionRules: (
   prefix: string,
   table: ActionRow[],
-  { ruleRegistry, hasSenate }: ActionRulesDependencies
+  {
+    ruleRegistry,
+    hasSenate,
+    cityRegistry,
+    unitRegistry,
+  }: ActionRulesDependencies
 ) => Action[];
 export default actionRules;

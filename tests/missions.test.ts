@@ -8,11 +8,14 @@ import {
 import City from '@civ-clone/core-city/City';
 import CityRegistry from '@civ-clone/core-city/CityRegistry';
 import Criterion from '@civ-clone/core-rule/Criterion';
+import Effect from '@civ-clone/core-rule/Effect';
+import HasEmbassy from '@civ-clone/base-diplomacy/Rules/HasEmbassy';
 import DiplomaticMissions from '@civ-clone/base-unit-trait-diplomatic-missions/DiplomaticMissions';
 import Embassy from '@civ-clone/base-unit-action-establish-embassy/Embassy';
 import Interaction from '@civ-clone/core-diplomacy/Interaction';
 import InteractionRegistry from '@civ-clone/core-diplomacy/InteractionRegistry';
 import Player from '@civ-clone/core-player/Player';
+import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
 import Tile from '@civ-clone/core-world/Tile';
 import TradeMissions from '@civ-clone/base-unit-trait-trade-missions/TradeMissions';
 import Unit from '@civ-clone/core-unit/Unit';
@@ -258,6 +261,23 @@ describe('diplomat', (): void => {
     interaction(me, them);
 
     expect(criterion.validate(envoy, to)).false;
+  });
+
+  it('should count an embassy a `HasEmbassy` rule gives, when it has the rules', (): void => {
+    const { city, me, them, from, to, unit, ...deps } = scene(),
+      ruleRegistry = new RuleRegistry(),
+      envoy = unit(me, from, { traits: [DiplomaticMissions] });
+
+    city(them, to);
+    ruleRegistry.register(
+      new HasEmbassy(
+        new Criterion((player: Player) => player === me),
+        new Effect(() => true)
+      )
+    );
+
+    expect(hasNoEmbassy(deps).validate(envoy, to)).true;
+    expect(hasNoEmbassy({ ...deps, ruleRegistry }).validate(envoy, to)).false;
   });
 
   it('should refuse to incite a capital, as `isCapital` says', (): void => {

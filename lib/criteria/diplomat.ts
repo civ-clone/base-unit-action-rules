@@ -6,8 +6,8 @@ import City from '@civ-clone/core-city/City';
 import Criterion from '@civ-clone/core-rule/Criterion';
 import Dependencies from '../Dependencies';
 import DiplomaticMissions from '@civ-clone/base-unit-trait-diplomatic-missions/DiplomaticMissions';
-import Embassy from '@civ-clone/base-unit-action-establish-embassy/Embassy';
 import Tile from '@civ-clone/core-world/Tile';
+import hasEmbassy from '@civ-clone/base-diplomacy/lib/embassy';
 import Unit from '@civ-clone/core-unit/Unit';
 
 export interface Diplomat {
@@ -64,20 +64,21 @@ export const canSteal = (
     canStealFrom(unit, cityRegistry.getByTile(to)!)
   );
 
-// The unit's player has no `Embassy` with the owner of the city on `to` yet. List it after `diplomatCriteria`.
+// The unit's player has no embassy with the owner of the city on `to` yet (base-diplomacy's `hasEmbassy`: an
+//  `Embassy`, or with `ruleRegistry` given, a `HasEmbassy` rule answering yes). List it after `diplomatCriteria`.
 export const hasNoEmbassy = ({
   cityRegistry,
   interactionRegistry,
-}: Pick<Dependencies, 'cityRegistry' | 'interactionRegistry'>): Criterion =>
+  ruleRegistry,
+}: Pick<Dependencies, 'cityRegistry' | 'interactionRegistry'> &
+  Partial<Pick<Dependencies, 'ruleRegistry'>>): Criterion =>
   new Criterion(
     (unit: Unit, to: Tile): boolean =>
-      !interactionRegistry
-        .getByPlayers(unit.player(), cityRegistry.getByTile(to)!.player())
-        .some(
-          (interaction) =>
-            interaction instanceof Embassy &&
-            (interaction as unknown as Embassy).holder() === unit.player()
-        )
+      !hasEmbassy(
+        { interactionRegistry, ruleRegistry },
+        unit.player(),
+        cityRegistry.getByTile(to)!.player()
+      )
   );
 
 // Whether `city` is its player's capital: the ruleset's own test.
