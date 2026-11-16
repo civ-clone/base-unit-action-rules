@@ -238,7 +238,7 @@ describe('peace', (): void => {
     expect(expired(me, nobody)).true;
   });
 
-  it('should count allies at peace, and a ceasefire not (base-diplomacy `treatyLevel`)', (): void => {
+  it('should count allies at peace, and a ceasefire as a treaty a sneak action breaks', (): void => {
     const registry = new InteractionRegistry(),
       ruleRegistry = new RuleRegistry(),
       me = new Player(ruleRegistry),
@@ -253,7 +253,20 @@ describe('peace', (): void => {
 
     expect(active(me, ally)).true;
     expect(active(ally, me)).true;
+    expect(active(me, truce)).true;
+
+    // An ordinary attack waits for the ceasefire to end, as for a peace.
+    const expired = peaceExpired(registry);
+
+    expect(expired(me, truce)).false;
+    expect(expired(me, ally)).false;
+
+    registry
+      .getByPlayers(me, truce)
+      .forEach((ceasefire) => (ceasefire as Ceasefire).expire());
+
     expect(active(me, truce)).false;
+    expect(expired(me, truce)).true;
   });
 
   it('should ask `peaceExpired` for an ordinary attack or capture, and `atPeace` for a sneak one', (): void => {
