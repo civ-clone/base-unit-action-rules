@@ -46,7 +46,7 @@
     "@civ-clone/base-unit-trait-terraforms": "^0.1.0",
     "@civ-clone/base-unit-trait-trade-missions": "^0.1.0",
     "@civ-clone/core-city": "^0.1.19",
-    "@civ-clone/core-diplomacy": "^0.1.7",
+    "@civ-clone/core-diplomacy": "^0.1.9",
     "@civ-clone/core-engine": "^0.1.0",
     "@civ-clone/core-player": "^0.1.0",
     "@civ-clone/core-registry": "^0.1.0",
