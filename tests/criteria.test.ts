@@ -850,6 +850,52 @@ describe('treatyGate', (): void => {
     expect(asked).eql([free, free, senate, senate]);
   });
 
+  it('should pass the treaty partner on the target square, the unit and the squares, given the registries', (): void => {
+    const me = player('me'),
+      owner = player('owner'),
+      stranger = player('stranger'),
+      cityTile = {} as Tile,
+      unitTile = {} as Tile,
+      emptyTile = {} as Tile,
+      from = {} as Tile,
+      ownedBy = (owner: Player): Unit =>
+        ({ player: (): Player => owner } as unknown as Unit),
+      mine = ownedBy(me),
+      cityRegistry = {
+        getByTile: (tile: Tile) =>
+          tile === cityTile ? { player: (): Player => owner } : null,
+      } as unknown as CityRegistry,
+      unitRegistry = {
+        getByTile: (tile: Tile): Unit[] =>
+          tile === unitTile ? [ownedBy(me), ownedBy(stranger)] : [],
+      } as unknown as UnitRegistry,
+      asked: any[][] = [],
+      hasSenate = (...args: any[]): boolean => {
+        asked.push(args);
+
+        return args[1] === owner;
+      },
+      { isFree, isOverruled } = treatyGate(hasSenate, {
+        cityRegistry,
+        unitRegistry,
+      });
+
+    expect(isOverruled.validate(mine, cityTile, from)).true;
+    expect(isFree.validate(mine, unitTile, from)).true;
+    expect(isFree.validate(mine, emptyTile, from)).true;
+    expect(asked).eql([
+      [me, owner, mine, cityTile, from],
+      [me, stranger, mine, unitTile, from],
+      [me, null, mine, emptyTile, from],
+    ]);
+
+    // Without the registries, nothing is looked up and there's no partner.
+    asked.length = 0;
+    treatyGate(hasSenate).isFree.validate(mine, cityTile, from);
+
+    expect(asked).eql([[me, null, mine, cityTile, from]]);
+  });
+
   it('should build an overruled action with its id, the criteria, then `isOverruled`', (): void => {
     const ruleRegistry = new RuleRegistry(),
       order: string[] = [],

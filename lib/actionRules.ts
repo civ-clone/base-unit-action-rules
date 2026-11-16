@@ -3,14 +3,13 @@ import Criterion from '@civ-clone/core-rule/Criterion';
 import Dependencies from './Dependencies';
 import Effect from '@civ-clone/core-rule/Effect';
 import { Overruled } from '@civ-clone/library-unit/Actions';
-import Player from '@civ-clone/core-player/Player';
 import Terrain from '@civ-clone/core-terrain/Terrain';
 import Tile from '@civ-clone/core-world/Tile';
 import TileImprovement from '@civ-clone/core-tile-improvement/TileImprovement';
 import Unit from '@civ-clone/core-unit/Unit';
 import UnitAction from '@civ-clone/core-unit/Action';
 import { terrainConversion, terrainJob } from './criteria/worker';
-import { treatyGate } from './criteria/treatyGate';
+import { HasSenate, treatyGate } from './criteria/treatyGate';
 
 // Builds the unit action an action rule performs. It is the rule's `Effect` as it is: whatever default it gives `from`
 //  is its own.
@@ -58,10 +57,12 @@ export interface ConversionRow {
 export type ActionRow = NamedRow | ImprovementRow | ConversionRow;
 
 export interface ActionRulesDependencies
-  extends Pick<Dependencies, 'ruleRegistry'> {
-  // Whether `player` has a Senate that won't let it break a treaty. Without it, no player has one: no rule is gated and
-  //  no overruled form is made.
-  hasSenate?: (player: Player) => boolean;
+  extends Pick<Dependencies, 'ruleRegistry'>,
+    Partial<Pick<Dependencies, 'cityRegistry' | 'unitRegistry'>> {
+  // Whether `player` has a Senate that won't let it break a treaty (`HasSenate`: it's also given the treaty partner
+  //  on the target square, found when `cityRegistry` and `unitRegistry` are given, and the unit and squares). Without
+  //  it, no player has one: no rule is gated and no overruled form is made.
+  hasSenate?: HasSenate;
 }
 
 // The id of the action rule `name` of a ruleset: `<prefix>:unit/action/<name>`.
@@ -80,9 +81,17 @@ const effectOf = (effect: Perform | Effect): Effect =>
 export const actionRules = (
   prefix: string,
   table: ActionRow[],
-  { ruleRegistry, hasSenate }: ActionRulesDependencies
+  {
+    ruleRegistry,
+    hasSenate,
+    cityRegistry,
+    unitRegistry,
+  }: ActionRulesDependencies
 ): Action[] => {
-  const gate = hasSenate === undefined ? null : treatyGate(hasSenate),
+  const gate =
+      hasSenate === undefined
+        ? null
+        : treatyGate(hasSenate, { cityRegistry, unitRegistry }),
     rules: Action[] = [];
 
   table.forEach((row: ActionRow): void => {

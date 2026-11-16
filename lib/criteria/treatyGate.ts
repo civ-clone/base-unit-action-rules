@@ -16,15 +16,61 @@ export interface TreatyGate {
 }
 
 /**
+ * Whether `player` has a Senate that won't let its `unit` break the treaty with `other` by acting from `from` on `to`.
+ * `other` is the treaty partner on `to` (the owner of the city there, or else of the first other player's unit there),
+ * or `null` when the gate wasn't given the registries to find it or there's nobody there. A test that looks only at
+ * `player` (Civ1's) can ignore the rest. `from` is the square the action is asked from, when it's given (the unit's own,
+ * usually).
+ */
+export type HasSenate = (
+  player: Player,
+  other: Player | null,
+  unit: Unit,
+  to: Tile,
+  from?: Tile
+) => boolean;
+
+/**
  * The two criteria that split an action breaking a treaty by whether its player has a Senate (`hasSenate`, the
- * ruleset's own test). Each asks `hasSenate` itself.
+ * ruleset's own test). Each asks `hasSenate` itself. With `cityRegistry` and `unitRegistry`, the treaty partner on the
+ * target square is found and passed; without them, it's `null` and nothing is looked up.
  */
 export const treatyGate = (
-  hasSenate: (player: Player) => boolean
-): TreatyGate => ({
-  isFree: new Criterion((unit: Unit): boolean => !hasSenate(unit.player())),
-  isOverruled: new Criterion((unit: Unit): boolean => hasSenate(unit.player())),
-});
+  hasSenate: HasSenate,
+  {
+    cityRegistry,
+    unitRegistry,
+  }: Partial<Pick<Dependencies, 'cityRegistry' | 'unitRegistry'>> = {}
+): TreatyGate => {
+  const partner = (unit: Unit, to: Tile): Player | null => {
+      if (cityRegistry === undefined || unitRegistry === undefined) {
+        return null;
+      }
+
+      const city = cityRegistry.getByTile(to);
+
+      if (city !== null) {
+        return city.player();
+      }
+
+      const other = unitRegistry
+        .getByTile(to)
+        .find((tileUnit: Unit): boolean => tileUnit.player() !== unit.player());
+
+      return other === undefined ? null : other.player();
+    },
+    senate = (unit: Unit, to: Tile, from?: Tile): boolean =>
+      hasSenate(unit.player(), partner(unit, to), unit, to, from);
+
+  return {
+    isFree: new Criterion(
+      (unit: Unit, to: Tile, from?: Tile): boolean => !senate(unit, to, from)
+    ),
+    isOverruled: new Criterion((unit: Unit, to: Tile, from?: Tile): boolean =>
+      senate(unit, to, from)
+    ),
+  };
+};
 
 export type Blocked = (unit: Unit, to: Tile, from: Tile) => UnitAction;
 
